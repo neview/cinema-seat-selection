@@ -8,7 +8,7 @@
       vip 影厅
     </view>
     <movable-area class="seating_map">
-      <movable-view direction="all" :inertia="true" :out-of-bounds="true" :scale="true" :scale-min="1" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
+      <movable-view direction="all" :inertia="true" :out-of-bounds="true" :scale="true" :scale-min="1" :scale-value="scaleValue" :x="xValue" :y="yValue" @change="dragChange" @scale="scaleChange">
           <view v-for="(item,index) in seatLists" :key="index" class="rowList render-nimation" >
             <view v-for="(item2,index2) in item" :key="index2" class="columnNoList" @click="selectSeat(item2)">
               <!-- 普通座位 -->
@@ -84,7 +84,6 @@
           </view>
       </movable-view>
     </movable-area>
-
 	</view>
 </template>
 
@@ -101,17 +100,36 @@ import seatDate from './seat.json'
         minRow:0,
         originalSeat:[],
         areaPrice:'',
-        settlePrice:''
+        settlePrice:'',
+        windowWidth:0,
+        xValue:0,
+        yValue:0,
 			}
 		},
+    watch:{
+      seatLists(){
+        setTimeout(()=>{
+          this.init()
+        },100)
+      }
+    },
 		onLoad(option) {
       let settle_price = seatDate.data.show_info.settle_price,
           area_price = JSON.parse(seatDate.data.show_info.area_price) || ''
       this.areaPrice = area_price
       this.settlePrice = settle_price
       this.originalSeat = seatDate.data.seat_data.seats
+      this.windowWidth = uni.getSystemInfoSync().windowWidth
       this.layoutStructure(this.originalSeat)
+      setTimeout(()=>{
+        this.init()
+      },100)
 		},
+    onReady(){
+      setTimeout(()=>{
+        this.init()
+      },100)
+    },
 		methods: {
       /*
        *  计算行列
@@ -134,6 +152,7 @@ import seatDate from './seat.json'
         this.seatRow = maxRow - minRow + 1
         this.minCol = minCol
         this.minRow = minRow
+        this.xValue = (this.windowWidth - ((this.windowWidth * this.seatCol * 60) / 750)) / 2
         this.initializationSeat()
       },
       /*
@@ -153,8 +172,7 @@ import seatDate from './seat.json'
           price: 0,
           area_id: "",
         }));
-        for (let i = 0;i<this.originalSeat;i++){
-          console.log(i)
+        for (let i = 0;i<this.originalSeat.length;i++){
           let {columnNo,rowNo,status,areaId,seatId,lovestatus,seatNo,seat_type} = this.originalSeat[i];
           let seatStatus = status === "N" ? 0: status === "LK" ? 2 : -1,
               price = 0;
@@ -163,8 +181,6 @@ import seatDate from './seat.json'
           }else {
             price = this.settlePrice
           }
-          console.log('rowNo - this.minRow',rowNo - this.minRow)
-          console.log('columnNo - this.minCol',columnNo - this.minCol)
           seatArr[parseInt(rowNo - this.minRow)][parseInt(columnNo - this.minCol)] = {
             type: seatStatus,
             SeatCode: seatId,
@@ -177,12 +193,13 @@ import seatDate from './seat.json'
             seat_type: seat_type,
           }
         }
-        console.log('seatArr',seatArr)
+        this.seatLists = seatArr
       },
       /*
        *  拖动
        * */
-      dragChange(){},
+      dragChange(obj){
+      },
       /*
        *  缩放
        * */
@@ -191,6 +208,22 @@ import seatDate from './seat.json'
        *  选择座位
        * */
       selectSeat(){},
+      /*
+       *  获取座位图位置信息
+       * */
+      init(){
+        // const query = uni.createSelectorQuery().in(this)
+        // query
+        //     .selectAll('.rowList')
+        //     .boundingClientRect(res => {
+        //       if(res){
+        //         console.log('res',res)
+        //       }
+        //
+        //     })
+        //     .exec()
+      },
+
 		}
 	}
 </script>
@@ -235,7 +268,7 @@ import seatDate from './seat.json'
   .rowList {
     display: flex;
     align-items: center;
-    margin-top: 15rpx;
+    margin-top: 10rpx;
 
     .columnNoList {
       margin-left: 2rpx;
@@ -244,8 +277,9 @@ import seatDate from './seat.json'
       align-items: center;
 
       image {
-        width: 100%;
-        height: 100%;
+        width: 50rpx;
+        height: 50rpx;
+        margin-left: 10rpx;
       }
     }
   }
