@@ -49,7 +49,7 @@
               <!-- 普通--已售座位 -->
               <image v-else-if="item2.type === 2" src="@/static/bought.png" mode="aspectFit"></image>
             </block>
-            <!-- 情侣座位 -->
+            <!-- 情侣座位 左边-->
             <block v-if="item2.lovestatus == 1">
               <image
                   v-if="item2.type === 0"
@@ -67,7 +67,7 @@
                   mode="aspectFit"
               ></image>
             </block>
-            <!-- 普通座位 -->
+            <!-- 情侣座位 右边-->
             <block v-if="item2.lovestatus == 2">
               <image
                   v-if="item2.type === 0"

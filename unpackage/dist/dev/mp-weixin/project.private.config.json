@@ -3,5 +3,18 @@
   "projectname": "cinema-seat-selection",
   "setting": {
     "compileHotReLoad": true
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/seat/seat",
+          "pathName": "pages/seat/seat",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
   }
 }

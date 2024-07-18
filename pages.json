@@ -5,6 +5,12 @@
 			"style": {
 				"navigationBarTitleText": "uni-app"
 			}
+		},
+		{
+			"path": "pages/seat/seat",
+			"style": {
+				"navigationBarTitleText": "座位"
+			}
 		}
 	],
 	"globalStyle": {
