@@ -4,13 +4,13 @@
       <view class="film_name">变形金刚：超能勇士崛起</view>
       <view class="film_time">2023-06-08 23:59:00 原版 3D</view>
     </view>
-    <view class="hall_name render-nimation">
+    <view class="hall_name render_nimation">
       vip 影厅
     </view>
-    <movable-area class="seating_map">
-      <movable-view direction="all" :inertia="true" :out-of-bounds="true" :scale="true" :scale-min="1" :scale-value="scaleValue" :x="xValue" :y="yValue" @change="dragChange" @scale="scaleChange">
-          <view v-for="(item,index) in seatLists" :key="index" class="rowList render-nimation" >
-            <view v-for="(item2,index2) in item" :key="index2" class="columnNoList" @click="selectSeat(item2)">
+    <movable-area  class="seating_map">
+      <movable-view class="movable_view" direction="all" :inertia="true" :out-of-bounds="true" :scale="true" :scale-min="0.5" :scale-max="2" :scale-value="scaleValue" :x="xValue" :y="yValue" @change="dragChange" @scale="scaleChange">
+          <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation" >
+            <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
               <block v-if="item2.lovestatus == 0">
                 <!-- 普通--未选座位 -->
@@ -82,6 +82,9 @@
               </block>
             </view>
           </view>
+          <view class="grade_list render_nimation">
+            <span v-for="item in gradeList" :key="item">{{item}}</span>
+          </view>
       </movable-view>
     </movable-area>
 	</view>
@@ -104,6 +107,7 @@ import seatDate from './seat.json'
         windowWidth:0,
         xValue:0,
         yValue:0,
+        gradeList:[]
 			}
 		},
     watch:{
@@ -172,6 +176,7 @@ import seatDate from './seat.json'
           price: 0,
           area_id: "",
         }));
+        let gradeArr = []
         for (let i = 0;i<this.originalSeat.length;i++){
           let {columnNo,rowNo,status,areaId,seatId,lovestatus,seatNo,seat_type} = this.originalSeat[i];
           let seatStatus = status === "N" ? 0: status === "LK" ? 2 : -1,
@@ -192,8 +197,10 @@ import seatDate from './seat.json'
             price: price,
             seat_type: seat_type,
           }
+          gradeArr.push(seatNo.substring(0,1))
         }
         this.seatLists = seatArr
+        this.gradeList = [...new Set(gradeArr)]
       },
       /*
        *  拖动
@@ -257,7 +264,7 @@ import seatDate from './seat.json'
   margin-top: 50rpx;
   z-index: 99;
 }
-.render-nimation{
+.render_nimation{
   animation-name: circle-in-center;
   animation-duration: .3s;
 }
@@ -265,23 +272,45 @@ import seatDate from './seat.json'
 .seating_map{
   width: 100%;
   height: 600rpx;
-  .rowList {
-    display: flex;
-    align-items: center;
-    margin-top: 10rpx;
-
-    .columnNoList {
-      margin-left: 2rpx;
+  .movable_view{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    .row_list {
       display: flex;
-      flex-direction: column;
       align-items: center;
+      margin-top: 10rpx;
 
-      image {
-        width: 50rpx;
-        height: 50rpx;
-        margin-left: 10rpx;
+      .columnNo_list {
+        margin-left: 2rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        image {
+          width: 50rpx;
+          height: 50rpx;
+          margin-left: 10rpx;
+        }
       }
     }
+  }
+}
+.grade_list{
+  width: 30rpx;
+  position: fixed;
+  top: 0;
+  left: 20rpx;
+  background-color: black;
+  color: #FFFFFF;
+  border-radius: 50rpx;
+  span{
+    display: inline-block;
+    width: 30rpx;
+    height: 50rpx;
+    margin-top: 10rpx;
+    font-size: 28rpx;
+    text-align: center;
   }
 }
 
