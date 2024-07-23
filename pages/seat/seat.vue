@@ -4,12 +4,12 @@
       <view class="film_name">变形金刚：超能勇士崛起</view>
       <view class="film_time">2023-06-08 23:59:00 原版 3D</view>
     </view>
-    <view class="hall_name render_nimation">
+    <view class="hall_name render_nimation_anim">
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :inertia="true" :out-of-bounds="true" :scale="true" :scale-min="0.5" :scale-max="2" :scale-value="scaleValue" :x="xValue" :y="yValue" @change="dragChange" @scale="scaleChange">
-          <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation" >
+      <movable-view class="movable_view" :scale="true" :scale-min="0.8" :scale-max="1.5" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
+          <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim" >
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
               <block v-if="item2.lovestatus == 0">
@@ -22,6 +22,7 @@
                         v-if="item2.price == settlePrice || item2.price == Math.ceil(settlePrice)"
                         src="@/static/unselected.png"
                         mode="aspectFit"
+                        :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                     >
                     </image>
                     <!-- 分区座位 -->
@@ -29,6 +30,7 @@
                         v-else
                         src="@/static/unselected2.png"
                         mode="aspectFit"
+                        :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                     ></image>
                   </block>
                   <!-- 普通--座位价格不存在 -->
@@ -36,13 +38,14 @@
                     <image
                         src="@/static/unselected.png"
                         mode="aspectFit"
+                        :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                     ></image>
                   </block>
                 </block>
                 <!-- 普通--已选座位 -->
-                <image v-else-if="item2.type === 1" src="@/static/iselected.png" mode="aspectFit"></image>
+                <image v-else-if="item2.type === 1" src="@/static/iselected.png" mode="aspectFit" :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"></image>
                 <!-- 普通--已售座位 -->
-                <image v-else-if="item2.type === 2" src="@/static/bought.png" mode="aspectFit"></image>
+                <image v-else-if="item2.type === 2" src="@/static/bought.png" mode="aspectFit" :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"></image>
               </block>
               <!-- 情侣座位 左边-->
               <block v-if="item2.lovestatus == 1">
@@ -50,16 +53,19 @@
                     v-if="item2.type === 0"
                     src="@/static/loveseatleft.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
                 <image
                     v-if="item2.type === 1"
                     src="@/static/icon_seat_lovers.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
                 <image
                     v-if="item2.type === 2"
                     src="@/static/loveseatysleft.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
               </block>
               <!-- 情侣座位 右边-->
@@ -68,25 +74,28 @@
                     v-if="item2.type === 0"
                     src="@/static/loveseatright.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
                 <image
                     v-if="item2.type === 1"
                     src="@/static/icon_seat_lovers.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
                 <image
                     v-if="item2.type === 2"
                     src="@/static/loveseatysright.png"
                     mode="aspectFit"
+                    :style="{width:itemImgSize+'px',height:itemImgSize+'px'}"
                 ></image>
               </block>
             </view>
           </view>
-          <view class="grade_list render_nimation">
-            <span v-for="item in gradeList" :key="item">{{item}}</span>
-          </view>
       </movable-view>
     </movable-area>
+    <view class="grade_list grade_show_anim" :style="{top:gradeTop+'px',transform:'scale('+gradeScale+')'}">
+      <span v-for="item in gradeList" :key="item" :style="{height:itemImgSize+'px'}">{{item}}</span>
+    </view>
 	</view>
 </template>
 
@@ -107,7 +116,10 @@ import seatDate from './seat.json'
         windowWidth:0,
         xValue:0,
         yValue:0,
-        gradeList:[]
+        gradeList:[],
+        itemImgSize:0,
+        gradeTop:0,
+        gradeScale:1
 			}
 		},
     watch:{
@@ -156,7 +168,8 @@ import seatDate from './seat.json'
         this.seatRow = maxRow - minRow + 1
         this.minCol = minCol
         this.minRow = minRow
-        this.xValue = (this.windowWidth - ((this.windowWidth * this.seatCol * 60) / 750)) / 2
+        // this.xValue = (this.windowWidth - ((this.windowWidth * this.seatCol * 60) / 750)) / 2
+        this.itemImgSize = ((this.windowWidth - this.convertPX(45)) / this.seatCol) - this.convertPX(10)
         this.initializationSeat()
       },
       /*
@@ -206,11 +219,14 @@ import seatDate from './seat.json'
        *  拖动
        * */
       dragChange(obj){
+        // console.log('拖动',obj)
       },
       /*
        *  缩放
        * */
-      scaleChange(){},
+      scaleChange(obj){
+        this.gradeScale = obj.detail.scale
+      },
       /*
        *  选择座位
        * */
@@ -219,18 +235,23 @@ import seatDate from './seat.json'
        *  获取座位图位置信息
        * */
       init(){
-        // const query = uni.createSelectorQuery().in(this)
-        // query
-        //     .selectAll('.rowList')
-        //     .boundingClientRect(res => {
-        //       if(res){
-        //         console.log('res',res)
-        //       }
-        //
-        //     })
-        //     .exec()
-      },
+        const query = uni.createSelectorQuery().in(this)
+        query
+            .selectAll('.movable_view')
+            .boundingClientRect(res => {
+              if(res){
+                this.gradeTop = res[0].top
+              }
 
+            })
+            .exec()
+      },
+      /*
+       * rpx转px
+       *  */
+      convertPX(obj){
+        return (this.windowWidth / 750) * obj
+      }
 		}
 	}
 </script>
@@ -262,16 +283,11 @@ import seatDate from './seat.json'
   background-image: url("../../static/yingmu.png");
   background-size: 100% 100%;
   margin-top: 50rpx;
-  z-index: 99;
 }
-.render_nimation{
-  animation-name: circle-in-center;
-  animation-duration: .3s;
-}
-
 .seating_map{
   width: 100%;
   height: 600rpx;
+  overflow: hidden;
   .movable_view{
     width: 100%;
     height: 100%;
@@ -280,6 +296,7 @@ import seatDate from './seat.json'
       display: flex;
       align-items: center;
       margin-top: 10rpx;
+      margin-left: 45rpx;
 
       .columnNo_list {
         margin-left: 2rpx;
@@ -288,8 +305,6 @@ import seatDate from './seat.json'
         align-items: center;
 
         image {
-          width: 50rpx;
-          height: 50rpx;
           margin-left: 10rpx;
         }
       }
@@ -297,21 +312,31 @@ import seatDate from './seat.json'
   }
 }
 .grade_list{
-  width: 30rpx;
+  width: 35rpx;
   position: fixed;
   top: 0;
-  left: 20rpx;
+  left: -50rpx;
   background-color: black;
   color: #FFFFFF;
   border-radius: 50rpx;
   span{
     display: inline-block;
-    width: 30rpx;
-    height: 50rpx;
+    width: 100%;
     margin-top: 10rpx;
     font-size: 28rpx;
     text-align: center;
   }
+}
+
+.render_nimation_anim{
+  animation-name: circle-in-center;
+  animation-duration: .3s;
+}
+.grade_show_anim{
+  animation-name: gradeShow;
+  animation-duration: .2s;
+  animation-delay: 200ms;
+  animation-fill-mode: forwards
 }
 
 @keyframes circle-in-center {
@@ -323,6 +348,15 @@ import seatDate from './seat.json'
   100% {
     opacity: 1;
     transform: scale(1)
+  }
+}
+@keyframes gradeShow {
+  0% {
+    left: -50rpx;
+  }
+
+  100% {
+    left: 10rpx;
   }
 }
 </style>
