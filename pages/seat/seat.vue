@@ -7,9 +7,9 @@
     <view class="hall_name render_nimation_anim">
       vip 影厅
     </view>
-    <movable-area  class="seating_map">
+    <movable-area  class="seating_map" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px)`}">
       <movable-view class="movable_view" :scale="true" :scale-min="0.8" :scale-max="1.5" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
-          <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim" >
+          <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
               <block v-if="item2.lovestatus == 0">
@@ -114,6 +114,8 @@ import seatDate from './seat.json'
         areaPrice:'',
         settlePrice:'',
         windowWidth:0,
+        startX:0,
+        startY:0,
         xValue:0,
         yValue:0,
         gradeList:[],
@@ -226,6 +228,22 @@ import seatDate from './seat.json'
        * */
       scaleChange(obj){
         this.gradeScale = obj.detail.scale
+        this.gradeTop = obj.detail.top
+      },
+      touchstart(event){
+        const firstTouch = event.touches[0];
+        this.startX = firstTouch.clientX;
+        this.startY = firstTouch.clientY;
+      },
+      touchmove(event){
+        const firstTouch = event.changedTouches[0];
+        const deltaX = firstTouch.clientX - this.startX;
+        const deltaY = firstTouch.clientY - this.startY;
+        console.log('deltaX',deltaX)
+        console.log('deltaY',deltaY)
+      },
+      touchend(obj){
+        console.log('离开',obj)
       },
       /*
        *  选择座位
