@@ -8,8 +8,8 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :scale="true" :scale-min="1" :scale-max="1.3" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
-        <view :style="{transform: `translateX(${xValue}px) translateY(${yValue}px)`}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
+      <movable-view class="movable_view" direction="all" :scale="true" :scale-min="1" :scale-max="1.5" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
+        <view :style="{transform: `translateX(${xValue}px) translateY(${yValue}px)`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
@@ -95,8 +95,8 @@
         </view>
       </movable-view>
     </movable-area>
-    <view class="grade_list grade_show_anim" :style="{top:gradeTop+'px',transform:`scale(${gradeScale}) translateY(${yValue}px)`}">
-      <span v-for="item in gradeList" :key="item" :style="{height:itemImgSize+'px'}">{{item}}</span>
+    <view class="grade_list grade_show_anim" :style="{top:gradeTop+'px',transform:`scale(${gradeScale}) translateY(${yValue}px)`,transition:executionTime}">
+      <span v-for="item in gradeList" :key="item" :style="{height:itemImgSize+'px',lineHeight:itemImgSize+'px'}">{{item}}</span>
     </view>
 	</view>
 </template>
@@ -123,7 +123,8 @@ import seatDate from './seat.json'
         gradeList:[],
         itemImgSize:0,
         gradeTop:0,
-        gradeScale:1
+        gradeScale:1,
+        executionTime:'none'
 			}
 		},
     watch:{
@@ -222,20 +223,18 @@ import seatDate from './seat.json'
       /*
        *  拖动
        * */
-      dragChange(obj){
-        // console.log('拖动',obj)
+      dragChange(){
       },
       /*
        *  缩放
        * */
       scaleChange(obj){
         this.gradeScale = obj.detail.scale
-        this.gradeTop = obj.detail.top
       },
       touchstart(event){
-          const firstTouch = event.touches[0];
-          this.startX = firstTouch.clientX;
-          this.startY = firstTouch.clientY;
+        const firstTouch = event.touches[0];
+        this.startX = firstTouch.clientX;
+        this.startY = firstTouch.clientY;
       },
       touchmove(event){
         const firstTouch = event.changedTouches[0];
@@ -243,8 +242,12 @@ import seatDate from './seat.json'
         this.yValue = firstTouch.clientY - this.startY;
       },
       touchend(){
+        this.executionTime = 'all 0.2s'
         this.xValue = 0
         this.yValue = 0
+        setTimeout(()=>{
+          this.executionTime = 'none'
+        },200)
       },
       /*
        *  选择座位
@@ -261,7 +264,6 @@ import seatDate from './seat.json'
               if(res){
                 this.gradeTop = res[0].top
               }
-
             })
             .exec()
       },
@@ -305,11 +307,11 @@ import seatDate from './seat.json'
 }
 .seating_map{
   width: 100%;
-  height: 50vh;
+  height: 100%;
   overflow: hidden;
   .movable_view{
     width: 100%;
-    height: 100%;
+    height: 100vh;
     position: relative;
     .row_list {
       display: flex;
@@ -333,11 +335,11 @@ import seatDate from './seat.json'
 .grade_list{
   width: 35rpx;
   position: fixed;
-  top: 0;
   left: -50rpx;
   background-color: black;
   color: #FFFFFF;
   border-radius: 50rpx;
+  padding-bottom: 10rpx;
   span{
     display: inline-block;
     width: 100%;
