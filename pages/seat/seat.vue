@@ -8,8 +8,8 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :scale="true" :scale-min="1" :scale-max="1.5" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
-        <view :style="{transform: `translateX(${xValue}px) translateY(${yValue}px)`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
+      <movable-view class="movable_view" direction="all" :scale="true" :scale-min="1" :scale-max="1.5" :x="movableX" :y="movableY" :scale-value="scaleValue" @change="dragChange" @scale="scaleChange">
+        <view :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
@@ -124,7 +124,11 @@ import seatDate from './seat.json'
         itemImgSize:0,
         gradeTop:0,
         gradeScale:1,
-        executionTime:'none'
+        executionTime:'none',
+        initialDistance:0,
+        initialScale:0,
+        movableX:0,
+        movableY:0
 			}
 		},
     watch:{
@@ -235,17 +239,34 @@ import seatDate from './seat.json'
         const firstTouch = event.touches[0];
         this.startX = firstTouch.clientX;
         this.startY = firstTouch.clientY;
+        // if (event.touches.length === 2) {
+        //   const xMove = event.touches[1].clientX - event.touches[0].clientX;
+        //   const yMove = event.touches[1].clientY - event.touches[0].clientY;
+        //   const distance = Math.sqrt(xMove * xMove + yMove * yMove);
+        //   this.initialDistance = distance
+        //   this.initialScale = this.gradeScale
+        // }
       },
       touchmove(event){
+        // if (event.touches.length === 2) {
+        //   const xMove = event.touches[1].clientX - event.touches[0].clientX;
+        //   const yMove = event.touches[1].clientY - event.touches[0].clientY;
+        //   const distance = Math.sqrt(xMove * xMove + yMove * yMove);
+        //   const distanceDiff = distance - this.initialDistance;
+        //   let scale = this.initialScale + 0.005 * distanceDiff;
+        //   this.gradeScale = scale
+        // }
         const firstTouch = event.changedTouches[0];
         this.xValue = firstTouch.clientX - this.startX;
         this.yValue = firstTouch.clientY - this.startY;
       },
       touchend(){
         this.executionTime = 'all 0.2s'
-        this.xValue = 0
-        this.yValue = 0
-        setTimeout(()=>{
+        this.xValue = this.movableX = 0
+        this.yValue = this.movableY = 0
+        this.gradeScale > 1.5 ? this.gradeScale = 1.5 : ''
+        this.gradeScale < 1 ? this.gradeScale = 1 : ''
+            setTimeout(()=>{
           this.executionTime = 'none'
         },200)
       },
@@ -272,7 +293,7 @@ import seatDate from './seat.json'
        *  */
       convertPX(obj){
         return (this.windowWidth / 750) * obj
-      }
+      },
 		}
 	}
 </script>
