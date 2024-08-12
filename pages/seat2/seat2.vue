@@ -1,5 +1,5 @@
 <template>
-	<view>
+  <view>
     <view class="film_info">
       <view class="film_name">变形金刚：超能勇士崛起</view>
       <view class="film_time">2023-06-08 23:59:00 原版 3D</view>
@@ -98,211 +98,211 @@
     <view class="grade_list grade_show_anim" :style="{top:gradeTop+'px',transform:`scale(${gradeScale}) translateY(${yValue}px)`,transition:executionTime}">
       <span v-for="item in gradeList" :key="item" :style="{height:itemImgSize+'px',lineHeight:itemImgSize+'px'}">{{item}}</span>
     </view>
-	</view>
+  </view>
 </template>
 
 <script>
 import seatDate from './seat.json'
-	export default {
-		data() {
-			return {
-        scaleValue:1,
-        seatLists:[],
-        seatCol:0,
-        seatRow:0,
-        minCol:0,
-        minRow:0,
-        originalSeat:[],
-        areaPrice:'',
-        settlePrice:'',
-        windowWidth:0,
-        startX:0,
-        startY:0,
-        xValue:0,
-        yValue:0,
-        gradeList:[],
-        itemImgSize:0,
-        gradeTop:0,
-        gradeScale:1,
-        executionTime:'none',
-        initialDistance:0,
-        initialScale:0,
-        movableX:0,
-        movableY:0,
-        scaleViewWidth:0
-			}
-		},
-    watch:{
-      seatLists(){
-        setTimeout(()=>{
-          this.init()
-        },100)
+export default {
+  data() {
+    return {
+      scaleValue:1,
+      seatLists:[],
+      seatCol:0,
+      seatRow:0,
+      minCol:0,
+      minRow:0,
+      originalSeat:[],
+      areaPrice:'',
+      settlePrice:'',
+      windowWidth:0,
+      startX:0,
+      startY:0,
+      xValue:0,
+      yValue:0,
+      gradeList:[],
+      itemImgSize:0,
+      gradeTop:0,
+      gradeScale:1,
+      executionTime:'none',
+      initialDistance:0,
+      initialScale:0,
+      movableX:0,
+      movableY:0,
+      scaleViewWidth:0
+    }
+  },
+  watch:{
+    seatLists(){
+      setTimeout(()=>{
+        this.init()
+      },100)
+    }
+  },
+  onLoad(option) {
+    let settle_price = seatDate.data.show_info.settle_price,
+        area_price = JSON.parse(seatDate.data.show_info.area_price) || ''
+    this.areaPrice = area_price
+    this.settlePrice = settle_price
+    this.originalSeat = seatDate.data.seat_data.seats
+    this.windowWidth = uni.getSystemInfoSync().windowWidth
+    this.layoutStructure(this.originalSeat)
+    setTimeout(()=>{
+      this.init()
+    },100)
+  },
+  onReady(){
+    setTimeout(()=>{
+      this.init()
+    },100)
+  },
+  methods: {
+    /*
+     *  计算行列
+     *  date 原始座位数据
+     *  price 分区价格
+     * */
+    layoutStructure(date){
+      let result = date.reduce(
+          ({ minCol, minRow, maxCol, maxRow }, item) => ({
+            minCol: Math.min(minCol, item.columnNo),
+            minRow: Math.min(minRow, item.rowNo),
+            maxCol: Math.max(maxCol, item.columnNo),
+            maxRow: Math.max(maxRow, item.rowNo)
+          }),
+          { minCol: date[0].columnNo, minRow: date[0].rowNo, maxCol: date[0].columnNo, maxRow: date[0].rowNo }
+      );
+
+      let { minCol, minRow, maxCol, maxRow } = result;
+      this.seatCol = maxCol - minCol + 1
+      this.seatRow = maxRow - minRow + 1
+      this.minCol = minCol
+      this.minRow = minRow
+      // this.xValue = (this.windowWidth - ((this.windowWidth * this.seatCol * 60) / 750)) / 2
+      this.itemImgSize = ((this.windowWidth - this.convertPX(45)) / this.seatCol) - this.convertPX(10)
+      this.initializationSeat()
+    },
+    /*
+     *  初始化座位数据
+     *  columnNo 纵坐标  rowNo 横坐标  areaId 分区ID  seatId 座位ID seatNo 座位名称
+     *  status 售罄状态 (N可售，LK不可售)
+     *  lovestatus 是否情侣座 (0为非情侣座 1为情侣座左 2为情侣座右)
+     * */
+    initializationSeat(){
+      let seatArr = Array(this.seatRow).fill([]).map(item=>Array(this.seatCol).fill({
+        type: -1,
+        SeatCode: "",
+        RowNum: "",
+        ColumnNum: "",
+        lovestatus: 0,
+        seatNo: "",
+        price: 0,
+        area_id: "",
+      }));
+      let gradeArr = []
+      for (let i = 0;i<this.originalSeat.length;i++){
+        let {columnNo,rowNo,status,areaId,seatId,lovestatus,seatNo,seat_type} = this.originalSeat[i];
+        let seatStatus = status === "N" ? 0: status === "LK" ? 2 : -1,
+            price = 0;
+        if(Array.isArray(this.areaPrice) && this.areaPrice.filter(item=>item.area == areaId).length>0){
+          price = this.areaPrice.filter(item=>item.area == areaId)[0].price.user_price
+        }else {
+          price = this.settlePrice
+        }
+        seatArr[parseInt(rowNo - this.minRow)][parseInt(columnNo - this.minCol)] = {
+          type: seatStatus,
+          SeatCode: seatId,
+          RowNum: seatNo.substring(0,1),
+          ColumnNum: columnNo,
+          lovestatus: lovestatus,
+          seatNo: seatNo,
+          area_id: areaId,
+          price: price,
+          seat_type: seat_type,
+        }
+        gradeArr.push(seatNo.substring(0,1))
+      }
+      this.seatLists = seatArr
+      this.gradeList = [...new Set(gradeArr)]
+    },
+    touchstart(event){
+      const firstTouch = event.touches[0];
+      this.startX = firstTouch.clientX;
+      this.startY = firstTouch.clientY;
+      if (event.touches.length === 2) {
+        const xMove = event.touches[1].clientX - event.touches[0].clientX;
+        const yMove = event.touches[1].clientY - event.touches[0].clientY;
+        const distance = Math.sqrt(xMove * xMove + yMove * yMove);
+        this.initialDistance = distance
+        this.initialScale = this.gradeScale
       }
     },
-		onLoad(option) {
-      let settle_price = seatDate.data.show_info.settle_price,
-          area_price = JSON.parse(seatDate.data.show_info.area_price) || ''
-      this.areaPrice = area_price
-      this.settlePrice = settle_price
-      this.originalSeat = seatDate.data.seat_data.seats
-      this.windowWidth = uni.getSystemInfoSync().windowWidth
-      this.layoutStructure(this.originalSeat)
-      setTimeout(()=>{
-        this.init()
-      },100)
-		},
-    onReady(){
-      setTimeout(()=>{
-        this.init()
-      },100)
+    touchmove(event){
+      if (event.touches.length === 2) {
+        const xMove = event.touches[1].clientX - event.touches[0].clientX;
+        const yMove = event.touches[1].clientY - event.touches[0].clientY;
+        const distance = Math.sqrt(xMove * xMove + yMove * yMove);
+        const distanceDiff = distance - this.initialDistance;
+        let scale = this.initialScale + 0.005 * distanceDiff;
+        this.gradeScale = scale
+      }
+
+      const firstTouch = event.changedTouches[0];
+      this.xValue = firstTouch.clientX - this.startX;
+      this.yValue = firstTouch.clientY - this.startY;
     },
-		methods: {
-      /*
-       *  计算行列
-       *  date 原始座位数据
-       *  price 分区价格
-       * */
-      layoutStructure(date){
-        let result = date.reduce(
-            ({ minCol, minRow, maxCol, maxRow }, item) => ({
-              minCol: Math.min(minCol, item.columnNo),
-              minRow: Math.min(minRow, item.rowNo),
-              maxCol: Math.max(maxCol, item.columnNo),
-              maxRow: Math.max(maxRow, item.rowNo)
-            }),
-            { minCol: date[0].columnNo, minRow: date[0].rowNo, maxCol: date[0].columnNo, maxRow: date[0].rowNo }
-        );
+    touchend(){
+      this.init()
+      this.executionTime = 'all 0.2s'
+      if(this.gradeScale > 1){
+        let realm = (this.scaleViewWidth - this.windowWidth) / 2
+        if(this.xValue < -realm) this.xValue = -realm
+        if(this.xValue > realm) this.xValue = realm
+      }else {
+        this.xValue = this.movableX = 0
+      }
+      this.yValue = this.movableY = 0
+      this.gradeScale > 1.5 ? this.gradeScale = 1.5 : ''
+      this.gradeScale < 1 ? this.gradeScale = 1 : ''
+      setTimeout(()=>{
+        this.executionTime = 'none'
+      },200)
+    },
+    /*
+     *  选择座位
+     * */
+    selectSeat(){},
+    /*
+     *  获取座位图位置信息
+     * */
+    init(){
+      const query = uni.createSelectorQuery().in(this)
+      query
+          .selectAll('.movable_view')
+          .boundingClientRect(res => {
+            if(res){
+              this.gradeTop = res[0].top
+            }
+          })
+          .exec()
 
-        let { minCol, minRow, maxCol, maxRow } = result;
-        this.seatCol = maxCol - minCol + 1
-        this.seatRow = maxRow - minRow + 1
-        this.minCol = minCol
-        this.minRow = minRow
-        // this.xValue = (this.windowWidth - ((this.windowWidth * this.seatCol * 60) / 750)) / 2
-        this.itemImgSize = ((this.windowWidth - this.convertPX(45)) / this.seatCol) - this.convertPX(10)
-        this.initializationSeat()
-      },
-      /*
-       *  初始化座位数据
-       *  columnNo 纵坐标  rowNo 横坐标  areaId 分区ID  seatId 座位ID seatNo 座位名称
-       *  status 售罄状态 (N可售，LK不可售)
-       *  lovestatus 是否情侣座 (0为非情侣座 1为情侣座左 2为情侣座右)
-       * */
-      initializationSeat(){
-        let seatArr = Array(this.seatRow).fill([]).map(item=>Array(this.seatCol).fill({
-          type: -1,
-          SeatCode: "",
-          RowNum: "",
-          ColumnNum: "",
-          lovestatus: 0,
-          seatNo: "",
-          price: 0,
-          area_id: "",
-        }));
-        let gradeArr = []
-        for (let i = 0;i<this.originalSeat.length;i++){
-          let {columnNo,rowNo,status,areaId,seatId,lovestatus,seatNo,seat_type} = this.originalSeat[i];
-          let seatStatus = status === "N" ? 0: status === "LK" ? 2 : -1,
-              price = 0;
-          if(Array.isArray(this.areaPrice) && this.areaPrice.filter(item=>item.area == areaId).length>0){
-            price = this.areaPrice.filter(item=>item.area == areaId)[0].price.user_price
-          }else {
-            price = this.settlePrice
-          }
-          seatArr[parseInt(rowNo - this.minRow)][parseInt(columnNo - this.minCol)] = {
-            type: seatStatus,
-            SeatCode: seatId,
-            RowNum: seatNo.substring(0,1),
-            ColumnNum: columnNo,
-            lovestatus: lovestatus,
-            seatNo: seatNo,
-            area_id: areaId,
-            price: price,
-            seat_type: seat_type,
-          }
-          gradeArr.push(seatNo.substring(0,1))
-        }
-        this.seatLists = seatArr
-        this.gradeList = [...new Set(gradeArr)]
-      },
-      touchstart(event){
-        const firstTouch = event.touches[0];
-        this.startX = firstTouch.clientX;
-        this.startY = firstTouch.clientY;
-        if (event.touches.length === 2) {
-          const xMove = event.touches[1].clientX - event.touches[0].clientX;
-          const yMove = event.touches[1].clientY - event.touches[0].clientY;
-          const distance = Math.sqrt(xMove * xMove + yMove * yMove);
-          this.initialDistance = distance
-          this.initialScale = this.gradeScale
-        }
-      },
-      touchmove(event){
-        if (event.touches.length === 2) {
-          const xMove = event.touches[1].clientX - event.touches[0].clientX;
-          const yMove = event.touches[1].clientY - event.touches[0].clientY;
-          const distance = Math.sqrt(xMove * xMove + yMove * yMove);
-          const distanceDiff = distance - this.initialDistance;
-          let scale = this.initialScale + 0.005 * distanceDiff;
-          this.gradeScale = scale
-        }
-
-        const firstTouch = event.changedTouches[0];
-        this.xValue = firstTouch.clientX - this.startX;
-        this.yValue = firstTouch.clientY - this.startY;
-      },
-      touchend(){
-        this.init()
-        this.executionTime = 'all 0.2s'
-        if(this.gradeScale > 1){
-          let realm = (this.scaleViewWidth - this.windowWidth) / 2
-          if(this.xValue < -realm) this.xValue = -realm
-          if(this.xValue > realm) this.xValue = realm
-        }else {
-          this.xValue = this.movableX = 0
-        }
-        this.yValue = this.movableY = 0
-        this.gradeScale > 1.5 ? this.gradeScale = 1.5 : ''
-        this.gradeScale < 1 ? this.gradeScale = 1 : ''
-            setTimeout(()=>{
-          this.executionTime = 'none'
-        },200)
-      },
-      /*
-       *  选择座位
-       * */
-      selectSeat(){},
-      /*
-       *  获取座位图位置信息
-       * */
-      init(){
-        const query = uni.createSelectorQuery().in(this)
-        query
-            .selectAll('.movable_view')
-            .boundingClientRect(res => {
-              if(res){
-                this.gradeTop = res[0].top
-              }
-            })
-            .exec()
-
-        query
-            .selectAll('.seat_date')
-            .boundingClientRect(res => {
-              if(res){
-                this.scaleViewWidth = res[0].width
-              }
-            })
-            .exec()
-      },
-      /*
-       * rpx转px
-       *  */
-      convertPX(obj){
-        return (this.windowWidth / 750) * obj
-      },
-		}
-	}
+      query
+          .selectAll('.seat_date')
+          .boundingClientRect(res => {
+            if(res){
+              this.scaleViewWidth = res[0].width
+            }
+          })
+          .exec()
+    },
+    /*
+     * rpx转px
+     *  */
+    convertPX(obj){
+      return (this.windowWidth / 750) * obj
+    },
+  }
+}
 </script>
 
 <style scoped lang="scss">

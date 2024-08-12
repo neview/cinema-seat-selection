@@ -11,6 +11,12 @@
 			"style": {
 				"navigationBarTitleText": "座位"
 			}
+		},
+		{
+			"path": "pages/seat2/seat2",
+			"style": {
+				"navigationBarTitleText": "选座"
+			}
 		}
 	],
 	"globalStyle": {
