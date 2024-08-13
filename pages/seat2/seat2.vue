@@ -8,8 +8,9 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY" >
-        <view class="seat_date" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
+      <movable-view class="movable_view" direction="all" :scale="true" :x="movableX" :y="movableY" @change="change" @scale="scale">
+<!--        <view class="seat_date" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">-->
+        <view class="seat_date">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
@@ -102,7 +103,7 @@
 </template>
 
 <script>
-import seatDate from './seat.json'
+import seatDate from '../seat/seat.json'
 export default {
   data() {
     return {
@@ -157,6 +158,13 @@ export default {
     },100)
   },
   methods: {
+    change(obj){
+      console.log('拖动',obj)
+      this.movableX -=1
+    },
+    scale(obj){
+      console.log('缩放',obj)
+    },
     /*
      *  计算行列
      *  date 原始座位数据

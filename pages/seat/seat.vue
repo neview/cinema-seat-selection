@@ -8,7 +8,7 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY" >
+      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY">
         <view class="seat_date" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
