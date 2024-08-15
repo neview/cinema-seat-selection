@@ -8,9 +8,9 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :scale="true" :x="movableX" :y="movableY" @change="change" @scale="scale">
-<!--        <view class="seat_date" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">-->
-        <view class="seat_date">
+      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY" :scale-max="1">
+        <!--        translateX(${xValue}px) translateY(${yValue}px)-->
+        <view class="seat_date" :style="{top:`${yValue}px`,left:`${xValue}px`,transform: `scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
               <!-- 普通座位 -->
@@ -158,13 +158,6 @@ export default {
     },100)
   },
   methods: {
-    change(obj){
-      console.log('拖动',obj)
-      this.movableX -=1
-    },
-    scale(obj){
-      console.log('缩放',obj)
-    },
     /*
      *  计算行列
      *  date 原始座位数据
@@ -253,8 +246,8 @@ export default {
         const distanceDiff = distance - this.initialDistance;
         let scale = this.initialScale + 0.005 * distanceDiff;
         this.gradeScale = scale
+        return
       }
-
       const firstTouch = event.changedTouches[0];
       this.xValue = firstTouch.clientX - this.startX;
       this.yValue = firstTouch.clientY - this.startY;
@@ -267,8 +260,9 @@ export default {
         if(this.xValue < -realm) this.xValue = -realm
         if(this.xValue > realm) this.xValue = realm
       }else {
-        this.xValue = this.movableX = 0
+        this.xValue = 0
       }
+      this.movableX = 0
       this.yValue = this.movableY = 0
       this.gradeScale > 1.5 ? this.gradeScale = 1.5 : ''
       this.gradeScale < 1 ? this.gradeScale = 1 : ''
@@ -350,6 +344,7 @@ export default {
     height: 100vh;
     position: relative;
     .seat_date{
+      position: absolute;
       transform-origin: 50% 0%;
     }
     .row_list {
@@ -379,6 +374,7 @@ export default {
   color: #FFFFFF;
   border-radius: 50rpx;
   padding-bottom: 10rpx;
+  transform-origin: 50% 0%;
   span{
     display: inline-block;
     width: 100%;

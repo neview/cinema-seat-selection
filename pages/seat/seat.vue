@@ -8,7 +8,8 @@
       vip 影厅
     </view>
     <movable-area  class="seating_map">
-      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY">
+      <movable-view class="movable_view" direction="all" :x="movableX" :y="movableY" :scale-max="1">
+<!--        translateX(${xValue}px) translateY(${yValue}px)-->
         <view class="seat_date" :style="{transform: `translateX(${xValue}px) translateY(${yValue}px) scale(${gradeScale})`,transition:executionTime}" @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
           <view v-for="(item,index) in seatLists" :key="index" class="row_list render_nimation_anim">
             <view v-for="(item2,index2) in item" :key="index2" class="columnNo_list" @click="selectSeat(item2)">
@@ -245,8 +246,8 @@ import seatDate from './seat.json'
           const distanceDiff = distance - this.initialDistance;
           let scale = this.initialScale + 0.005 * distanceDiff;
           this.gradeScale = scale
+          return
         }
-
         const firstTouch = event.changedTouches[0];
         this.xValue = firstTouch.clientX - this.startX;
         this.yValue = firstTouch.clientY - this.startY;
@@ -259,8 +260,9 @@ import seatDate from './seat.json'
           if(this.xValue < -realm) this.xValue = -realm
           if(this.xValue > realm) this.xValue = realm
         }else {
-          this.xValue = this.movableX = 0
+          this.xValue = 0
         }
+        this.movableX = 0
         this.yValue = this.movableY = 0
         this.gradeScale > 1.5 ? this.gradeScale = 1.5 : ''
         this.gradeScale < 1 ? this.gradeScale = 1 : ''
@@ -371,6 +373,7 @@ import seatDate from './seat.json'
   color: #FFFFFF;
   border-radius: 50rpx;
   padding-bottom: 10rpx;
+  transform-origin: 50% 0%;
   span{
     display: inline-block;
     width: 100%;
