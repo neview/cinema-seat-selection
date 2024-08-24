@@ -17,6 +17,12 @@
 			"style": {
 				"navigationBarTitleText": "选座"
 			}
+		},
+		{
+			"path": "pages/test/test",
+			"style": {
+				"navigationBarTitleText": "测试"
+			}
 		}
 	],
 	"globalStyle": {
